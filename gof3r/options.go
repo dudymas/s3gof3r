@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/rlmcpherson/s3gof3r"
 )
 
 const (
@@ -17,8 +18,13 @@ const (
 
 // CommonOpts are Options common to all commands
 type CommonOpts struct {
-	EndPoint string `long:"endpoint" description:"Amazon S3 endpoint" default:"s3.amazonaws.com" ini-name:"endpoint"`
-	Debug    bool   `long:"debug" description:"Enable debug logging." ini-name:"debug"`
+	EndPoint  string `long:"endpoint" description:"Amazon S3 endpoint" default:"s3.amazonaws.com" ini-name:"endpoint"`
+	PathStyle bool   `long:"path-style" description:"uses bucket in path rather than domain" ini-name:"path-style"`
+	Debug     bool   `long:"debug" description:"Enable debug logging." ini-name:"debug"`
+}
+
+func (co *CommonOpts) SetCommonOptConfigs(conf *s3gof3r.Config) {
+	conf.PathStyle = co.PathStyle
 }
 
 // DataOpts are Options common to cp, get, and put commands
@@ -27,6 +33,15 @@ type DataOpts struct {
 	NoMd5       bool  `long:"no-md5" description:"Do not use md5 hash checking to ensure data integrity. By default, the md5 hash of is calculated concurrently during puts, stored at <bucket>.md5/<key>.md5, and verified on gets." ini-name:"no-md5"`
 	Concurrency int   `long:"concurrency" short:"c" default:"10" description:"Concurrency of transfers" ini-name:"concurrency"`
 	PartSize    int64 `long:"partsize" short:"s" description:"Initial size of concurrent parts, in bytes" default:"20971520" ini-name:"partsize"`
+}
+
+func (co *DataOpts) SetDataOptConfigs(conf *s3gof3r.Config) {
+	conf.Concurrency = co.Concurrency
+	if co.NoSSL {
+		conf.Scheme = "http"
+	}
+	conf.PartSize = co.PartSize
+	conf.Md5Check = !co.NoMd5
 }
 
 // UpOpts are Options for uploading common to cp and put commands

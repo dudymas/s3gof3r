@@ -23,18 +23,15 @@ var get getOpts
 func (get *getOpts) Execute(args []string) (err error) {
 	conf := new(s3gof3r.Config)
 	*conf = *s3gof3r.DefaultConfig
+	put.SetCommonOptConfigs(conf)
+	put.SetDataOptConfigs(conf)
+
 	k, err := getAWSKeys()
 	if err != nil {
 		return
 	}
 	s3 := s3gof3r.New(get.EndPoint, k)
 	b := s3.Bucket(get.Bucket)
-	conf.Concurrency = get.Concurrency
-	if get.NoSSL {
-		conf.Scheme = "http"
-	}
-	conf.PartSize = get.PartSize
-	conf.Md5Check = !get.NoMd5
 
 	s3gof3r.SetLogger(os.Stderr, "", log.LstdFlags, get.Debug)
 

@@ -23,18 +23,16 @@ var put putOpts
 func (put *putOpts) Execute(args []string) (err error) {
 	conf := new(s3gof3r.Config)
 	*conf = *s3gof3r.DefaultConfig
+	put.SetCommonOptConfigs(conf)
+	put.SetDataOptConfigs(conf)
+
 	k, err := getAWSKeys()
 	if err != nil {
 		return
 	}
 	s3 := s3gof3r.New(put.EndPoint, k)
 	b := s3.Bucket(put.Bucket)
-	conf.Concurrency = put.Concurrency
-	if put.NoSSL {
-		conf.Scheme = "http"
-	}
-	conf.PartSize = put.PartSize
-	conf.Md5Check = !put.NoMd5
+
 	s3gof3r.SetLogger(os.Stderr, "", log.LstdFlags, put.Debug)
 
 	if put.Header == nil {
